@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#07101f" />
+    <title>SyncHub | Profile content manager</title>
+    <link rel="preconnect" href="https://unpkg.com" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="#" aria-label="SyncHub home"><span class="brand-mark" data-lucide="refresh-cw"></span><span><strong>SyncHub</strong><small>Profile content manager</small></span></a>
+      <div class="top-actions">
+        <button class="button ghost" id="exportBtn" title="Download a backup"><i data-lucide="download"></i><span>Export</span></button>
+        <label class="button ghost" title="Load a backup"><i data-lucide="upload"></i><span>Import</span><input id="importInput" type="file" accept="application/json" hidden /></label>
+        <button class="button github" id="githubBtn"><i data-lucide="github"></i><span>GitHub Sync</span></button>
+      </div>
+    </header>
+
+    <main class="app-shell">
+      <section class="summary-grid" aria-label="Overview">
+        <article class="stat-card"><div><p>CONTENT LIBRARY</p><strong id="contentCount">0</strong><small>Your reusable profile details</small></div><span class="stat-icon teal"><i data-lucide="layers-3"></i></span></article>
+        <article class="stat-card"><div><p>JOB PORTALS</p><strong id="portalCount">0</strong><small>Profiles and application sites</small></div><span class="stat-icon blue"><i data-lucide="briefcase-business"></i></span></article>
+        <article class="stat-card"><div><p>NEEDING UPDATE</p><strong id="staleCount">0</strong><small id="staleLabel">Everything is up to date</small></div><span class="stat-icon amber"><i data-lucide="bell-ring"></i></span></article>
+      </section>
+
+      <nav class="tabs" aria-label="Dashboards">
+        <button class="tab active" data-view="content"><i data-lucide="layers-3"></i> Content <span class="pill" id="contentTabCount">0</span></button>
+        <button class="tab" data-view="portals"><i data-lucide="briefcase-business"></i> Job portals & sync <span class="pill" id="portalTabCount">0</span></button>
+      </nav>
+
+      <section id="contentView" class="dashboard">
+        <div class="toolbar">
+          <div class="search-wrap"><i data-lucide="search"></i><input id="searchInput" placeholder="Search content" /></div>
+          <select id="categoryFilter" aria-label="Filter by category"><option value="all">All categories</option><option>Headline</option><option>About / Bio</option><option>Skills</option><option>Experience</option><option>Projects</option><option>Contact</option><option>Other</option></select>
+          <button class="button primary grow-mobile" id="addContentBtn"><i data-lucide="plus"></i>Add content</button>
+        </div>
+        <div id="contentGrid" class="content-grid"></div>
+      </section>
+
+      <section id="portalsView" class="dashboard hidden">
+        <div class="notice"><span class="notice-icon"><i data-lucide="git-compare-arrows"></i></span><div><h2>Portal update queue</h2><p>Choose only the content used by each portal. Editing an item automatically marks its assigned portals as needing an update.</p></div><button class="button primary" id="addPortalBtn"><i data-lucide="plus"></i>Add portal</button></div>
+        <div id="portalList" class="portal-list"></div>
+      </section>
+    </main>
+
+    <dialog id="contentDialog" class="modal"><form id="contentForm" method="dialog"><header><div><h2 id="contentDialogTitle">Add content</h2><p>Build one reusable profile detail.</p></div><button type="button" class="icon-button close" data-close="contentDialog" aria-label="Close"><i data-lucide="x"></i></button></header><div class="form-body"><label>Content title<input id="contentTitle" required maxlength="80" placeholder="e.g. Product designer headline" /></label><label>Category<select id="contentCategory"><option>Headline</option><option>About / Bio</option><option>Skills</option><option>Experience</option><option>Projects</option><option>Contact</option><option>Other</option></select></label><label>Content text<textarea id="contentText" required maxlength="3000" placeholder="Write the version you want to reuse across job portals..."></textarea></label></div><footer><button type="button" class="button ghost" data-close="contentDialog">Cancel</button><button class="button primary" id="contentSubmit">Save content</button></footer></form></dialog>
+
+    <dialog id="portalDialog" class="modal wide"><form id="portalForm" method="dialog"><header><div><h2 id="portalDialogTitle">Add job portal</h2><p>Assign the details you use on this portal.</p></div><button type="button" class="icon-button close" data-close="portalDialog" aria-label="Close"><i data-lucide="x"></i></button></header><div class="form-body two-col"><label>Portal name<input id="portalName" required maxlength="60" placeholder="e.g. LinkedIn profile" /></label><label>Portal type<select id="portalType"><option>LinkedIn</option><option>Job board</option><option>Company career site</option><option>Portfolio</option><option>Other</option></select></label><label class="full">Portal link<input id="portalUrl" required type="url" placeholder="https://www.linkedin.com/in/your-name" /></label><fieldset class="full"><legend>Content to use on this portal <span id="assignmentCount">0 selected</span></legend><div id="assignmentList" class="assignment-list"></div></fieldset></div><footer><button type="button" class="button ghost" data-close="portalDialog">Cancel</button><button class="button primary" id="portalSubmit">Save portal</button></footer></form></dialog>
+
+    <dialog id="githubDialog" class="modal"><form id="githubForm" method="dialog"><header><div><h2>GitHub Sync</h2><p>Save or restore your SyncHub data from a GitHub repository.</p></div><button type="button" class="icon-button close" data-close="githubDialog" aria-label="Close"><i data-lucide="x"></i></button></header><div class="form-body"><label>GitHub personal access token<input id="githubToken" type="password" autocomplete="off" placeholder="github_pat_..." /><small>Stored only for this browser session. It needs repository contents read/write access.</small></label><label>Repository<input id="githubRepo" required placeholder="your-username/synchub-data" /></label><div class="two-col-inline"><label>Branch<input id="githubBranch" value="main" required /></label><label>Data file path<input id="githubPath" value="synchub-data.json" required /></label></div><p id="syncStatus" class="sync-status"></p></div><footer><button type="button" class="button ghost" data-close="githubDialog">Close</button><button type="button" class="button ghost" id="loadGithubBtn"><i data-lucide="cloud-download"></i>Load</button><button class="button primary" id="saveGithubBtn"><i data-lucide="cloud-upload"></i>Save to GitHub</button></footer></form></dialog>
+
+    <template id="emptyState"><div class="empty-state"><i data-lucide="folder-plus"></i><h2>Nothing here yet</h2><p>Add your first item and turn your profile into a reusable source of truth.</p></div></template>
+    <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
